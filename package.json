@@ -1,0 +1,19 @@
+{
+  "name": "easyweb3",
+  "version": "1.0.4",
+  "description": "Library to somplify the use of web3 I'm testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kikoncuo/easyweb3"
+  },
+  "keywords": [
+    "web3",
+    "ethereum"
+  ],
+  "author": "Enrique Alcazar",
+  "license": "ISC"
+}
