@@ -25,6 +25,18 @@ exports.getContractInstance = function (abi, address){
   return contractInstance;
 }
 
+exports.blkListenAllEventsWithFilter = function(contractInstance, callback, filterParam, filterValue){
+  var events = contractInstance.allEvents([{filterParam: filterValue}]);
+  events.watch(function(error, event){
+      if (error) {
+        callback(error, null);
+      } else {
+         var eventRet = event;
+        callback(null, eventRet);
+      }
+  });
+}
+
 exports.blkListenAllEventsContinuously = function(contractInstance, callback){
   var events = contractInstance.allEvents();
   events.watch(function(error, event){

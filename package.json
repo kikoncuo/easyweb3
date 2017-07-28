@@ -1,6 +1,6 @@
 {
   "name": "easyweb3",
-  "version": "1.0.11",
+  "version": "1.1.1",
   "description": "Library to somplify the use of web3 I'm testing",
   "main": "index.js",
   "scripts": {

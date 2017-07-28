@@ -18,6 +18,8 @@
  
  blkListenAllEventsOnce(contractInstance, callback)
  
+ blkListenAllEventsWithFilter(contractInstance, callback, filterParam, filterValue)
+ 
  printEventLog = function(instanceEvent)
  ```
  
@@ -43,4 +45,6 @@
    }
  
  SCController.printEventLog(instanceAccountIdContract.allEvents);
+ 
+ SCController.blkListenAllEventsWithFilter(contractInstance, eventHandler, 'countryCode', 351);
  ```
