@@ -57,7 +57,7 @@ exports.blkListenAllEventsOnce = function(contractInstance, callback){
     } else {
        var eventRet = event;
       callback(null, eventRet);
-          return eventRet;
+      events.stopWatching();
       }
   });
 }
