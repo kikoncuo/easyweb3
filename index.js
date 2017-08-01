@@ -6,7 +6,11 @@ exports.setProvider = function (web3Instance){
   web3 = web3Instance;
 }
 
-exports.setAccount = function (account){
+exports.setOtherAccount = function (){
+  return web3.eth.accounts[1];
+}
+
+exports.setDefaultAccount = function (account){
   web3.eth.defaultAccount = account;
 }
 
