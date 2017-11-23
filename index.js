@@ -1,5 +1,5 @@
 var Web3 = require('web3');
-var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));//with testrpc
+var web3 ;//with testrpc
 web3.eth.defaultAccount = web3.eth.accounts[0];
 
 exports.setProvider = function (web3Instance){
@@ -19,7 +19,12 @@ exports.getLatestAddress = function(contrato) {
     console.log('ERROR: contract address not found');
 }
 
-exports.getContractInstance = function (abi, address){
+exports.getContractInstance = function (abi, address, web3Instance){
+  if(web3Instance != undefined){
+    web3 = web3Instance;
+  }else{
+    checkWeb3Instance();
+  }
   var contract = web3.eth.contract(abi);
   contractInstance = contract.at(address);
   return contractInstance;
@@ -75,3 +80,9 @@ exports.printEventLog = function(instanceEvent){
       }
     });
   }
+
+var checkWeb3Instance = function (){
+  if(web3 == undefined){
+    console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
+  }
+}
