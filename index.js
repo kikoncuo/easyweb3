@@ -1,3 +1,4 @@
+var fs = require('fs');
 var Web3 = require('web3');
 var web3;
 
@@ -10,6 +11,10 @@ exports.setProvider = function (host = "http://localhost:8545"){
 
 exports.setDefaultAccount = function (account){
   web3.eth.defaultAccount = account;
+}
+
+exports.getWeb3Instance = function (){
+  return web3;
 }
 
 exports.getAddress = function(contrato) {
@@ -112,18 +117,22 @@ var JsethContract = function(abi, address, contract, instance){
   this.listFunctions = listFunctions();
 }
 
-exports.JsethContractFromTruffle = function(truffleBuild, callback){
-  if (truffleBuild.networks[web3.version.network] == undefined){
-    console.log('******************\nERROR: contract address not found, contract maybe not deployed\n******************');
-    var error = 'error truffle object'
-    callback(error, null);
+exports.jsethContractFromTruffle = function(_truffleBuild, callback){
+  var version = web3.version.network;
+  if (typeof _truffleBuild == 'string'){
+    truffleBuild = JSON.parse(fs.readFileSync(_truffleBuild, 'utf8'));
+  } else if (typeof _truffleBuild == 'object'){
+    truffleBuild = _truffleBuild;
   } else {
-    if(!/0x([a-z0-9]{40,})$/.test(truffleBuild.networks[web3.version.network].address)){
-      console.log('ERROR: Invalid address ' + truffleBuild.networks[web3.version.network].address);
-      var error = 'error address';
-      callback(error, null);
+    callback(new Error('Error: Unknown truffle source'), null);
+  }
+  if (truffleBuild.networks[web3.version.network] == undefined){
+    callback(new Error('Error: contract address not found, contract maybe not deployed'), null);
+  } else {
+    if(!/0x([a-z0-9]{40,})$/.test(truffleBuild.networks[version].address)){
+      callback(new Error('Error: Invalid address ' + truffleBuild.networks[version].addres), null);
     } else {
-      let address = truffleBuild.networks[web3.version.network].address;
+      let address = truffleBuild.networks[version].address;
       let abi = truffleBuild.abi;
       let contract = web3.eth.contract(abi);
       let instance = contract.at(address);
@@ -134,14 +143,17 @@ exports.JsethContractFromTruffle = function(truffleBuild, callback){
 
 exports.encodePayload = function(abiFoo, args, callback){
   if(abiFoo.inputs.length != args.length){
-    callback('error: mismatch inputs', null);
+    callback(new Error('Error: mismatch inputs'), null);
   } else {
     let encodedPayload = '';
     let fooSign = abiFoo.name + '(';
-    abiFoo.inputs.forEach((input) => {
-      fooSign = fooSign + input.type +',';
-    });
-    fooSign = fooSign.slice(0,fooSign.length - 1) + ')';
+    if (abiFoo.inputs.length != 0) {
+      abiFoo.inputs.forEach((input) => {
+        fooSign = fooSign + input.type +',';
+      });
+      fooSign = fooSign.slice(0,fooSign.length - 1);
+    }
+    fooSign = fooSign + ')';
     fooSign = web3.sha3(fooSign).slice(0,10);
     if(abiFoo.inputs.length == 0){
       encodedPayload = fooSign +'0'.repeat(56);
