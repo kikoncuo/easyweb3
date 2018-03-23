@@ -12,7 +12,7 @@ exports.setDefaultAccount = function (account){
   web3.eth.defaultAccount = account;
 }
 
-exports.getTruffleAddress = function(contrato) {
+exports.getAddress = function(contrato) {
     let address;
     if (address == undefined || /0x([a-z0-9]{40,})$/.test(address)){
       console.log('ERROR: contract address not found');
