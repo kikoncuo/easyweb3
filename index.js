@@ -42,6 +42,17 @@ var JsethAccount = function(address){
 
 exports.version = 'version 0.2';
 
+var checkWeb3Instance = function () {
+  if(web3 == undefined){
+    console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
+    return false;
+  }
+  else {
+    console.log('Everything ok');
+    return true;
+  };
+}
+
 exports.setProvider = function (host = "http://localhost:8545"){
   web3 = new Web3(new Web3.providers.HttpProvider(host));
   web3.eth.defaultAccount = web3.eth.accounts[0];
@@ -116,31 +127,6 @@ exports.blkListenAllEventsOnce = function(contractInstance, callback){
   });
 }
 
-exports.printEventLog = function(instanceEvent){
-    var myEvent = instanceEvent({},{fromBlock: 0, toBlock: "latest"});
-    var eventLog = '';
-    myEvent.get(function(error, logs){
-      if(error) {
-        console.log(error);
-      } else {
-        logs.forEach(function(element){
-          console.log(element.args);
-        });
-      }
-    });
-  }
-
-var checkWeb3Instance = function () {
-  if(web3 == undefined){
-    console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
-    return false;
-  }
-  else {
-    console.log('Everything ok');
-    return true;
-  };
-}
-
 exports.jsethContractFromTruffle = function(_truffleBuild, callback){
   var version = web3.version.network;
   if (typeof _truffleBuild == 'string'){
@@ -166,8 +152,8 @@ exports.jsethContractFromTruffle = function(_truffleBuild, callback){
 }
 
 exports.jsethAccountGenerate = function(){
-  address = '0x' + account.getAddress().toString('hex');
   var _account = wallet.generate();
+  address = '0x' + _account.getAddress().toString('hex');
   var account = new JsethAccount(address);
   account.private = _account._privKey;
   account.public = _account._pubKey;
@@ -180,6 +166,20 @@ exports.jsethAccountGet = function(address){
   account.private = 'on node account';
   account.public = 'on node account';
   return account;
+}
+
+exports.printEventLog = function(instanceEvent){
+  var myEvent = instanceEvent({},{fromBlock: 0, toBlock: "latest"});
+  var eventLog = '';
+  myEvent.get(function(error, logs){
+    if(error) {
+      console.log(error);
+    } else {
+      logs.forEach(function(element){
+        console.log(element.args);
+      });
+    }
+  });
 }
 
 exports.encodePayload = function(abiFoo, args, callback){
