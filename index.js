@@ -1,3 +1,6 @@
+const EthereumTx = require('ethereumjs-tx')
+var SolidityFunction = require('web3/lib/web3/function');
+var wallet = require('ethereumjs-wallet');
 var fs = require('fs');
 var Web3 = require('web3');
 var web3;
@@ -14,7 +17,11 @@ exports.setDefaultAccount = function (account){
 }
 
 exports.getWeb3Instance = function (){
+  if(checkWeb3Instance()){
   return web3;
+  } else {
+  return new Error('Web 3 not defined');
+  }
 }
 
 exports.getAddress = function(contrato) {
@@ -91,30 +98,49 @@ exports.printEventLog = function(instanceEvent){
 var checkWeb3Instance = function (){
   if(web3 == undefined){
     console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
+    return false;
   }
   else {
     console.log('Everything ok');
+    return true;
   }
 }
 
 var JsethContract = function(abi, address, contract, instance){
+  var contractFunctionEncode = function(_functionName,_params) {
+      var nameMethod = '[encodeFunctionCall]';
+      log.debug(`${nameModule} ${nameMethod} Encoding call function ${JSON.stringify(_functionName)} ->  with params -> ${JSON.stringify(functionParams)}`);
+      var solidityFunction = new SolidityFunction('', _.find(abi, {name: _functionName}), address);
+      return solidityFunction.toPayload(functionParams).data;
+    };
+  };
+  var listFunctions = function(){
+    let index = 0;
+    var list={};
+    abi.forEach((foo)=>{
+      list[foo.name] = index;
+      index++;
+    });
+    return list;
+  };
   this.abi = abi;
   this.address = address;
   this.instance = instance;
   this.contract = contract;
-  var listFunctions = function(){
-    let index = 0;
-    var list = [];
-    abi.forEach((foo)=>{
-      let item = {};
-      item.name = foo.name;
-      item.index = index;
-      list[index] = item;
-      index ++;
-    });
-    return list;
-  }
   this.listFunctions = listFunctions();
+  this.contractFunctionEncode = contractFunctionEncode;
+}
+
+var JsetAccount = function(address){
+  this.address = address;
+  var unlock = function(password = ''){
+    web3.personal.unlockAccount(address, password, 1000);
+  }
+  this.unlock = unlock;
+  this.private;
+  this.public;
+  let _balance = web3.eth.getBalance(address);
+  this.balance = _balance.toNumber();
 }
 
 exports.jsethContractFromTruffle = function(_truffleBuild, callback){
@@ -139,6 +165,14 @@ exports.jsethContractFromTruffle = function(_truffleBuild, callback){
       callback(null, new JsethContract(abi, address, contract, instance));
     }
   }
+}
+
+exports.jsethAccountGenerate = function(){
+
+}
+
+exports.jsethAccountGet = function(){
+
 }
 
 exports.encodePayload = function(abiFoo, args, callback){
