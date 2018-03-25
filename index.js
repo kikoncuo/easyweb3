@@ -1,9 +1,44 @@
-const EthereumTx = require('ethereumjs-tx')
+const EthereumTx = require('ethereumjs-tx');
+const crypto = require('crypto-js');
 var SolidityFunction = require('web3/lib/web3/function');
 var wallet = require('ethereumjs-wallet');
 var fs = require('fs');
 var Web3 = require('web3');
 var web3;
+
+var JsethContract = function(abi, address, contract, instance){
+  var contractFunctionEncode = function(_functionName,_params){
+    var nameMethod = '[encodeFunctionCall]';
+    log.debug(`${nameModule} ${nameMethod} Encoding call function ${JSON.stringify(_functionName)} ->  with params -> ${JSON.stringify(functionParams)}`);
+    var solidityFunction = new SolidityFunction('', _.find(abi, {name: _functionName}), address);
+    return solidityFunction.toPayload(functionParams).data;
+  };
+  var listFunctions = function(){
+    let index = 0;
+    var list={};
+    abi.forEach((foo)=>{
+      list[foo.name] = index;
+      index++;
+    });
+    return list;
+  };
+  this.abi = abi;
+  this.address = address;
+  this.instance = instance;
+  this.contract = contract;
+  this.listFunctions = listFunctions();
+  this.contractFunctionEncode = contractFunctionEncode;
+}
+
+var JsethAccount = function(address){
+  var unlock = function(password = ''){
+    web3.personal.unlockAccount(address, password, 1000);
+  };
+  this.address = address;
+  this.unlock = unlock;
+  this.private = '';
+  this.public = '';
+}
 
 exports.version = 'version 0.2';
 
@@ -24,7 +59,7 @@ exports.getWeb3Instance = function (){
   }
 }
 
-exports.getAddress = function(contrato) {
+exports.getAddress = function(contrato){
     let address;
     if (address == undefined || /0x([a-z0-9]{40,})$/.test(address)){
       console.log('ERROR: contract address not found');
@@ -95,7 +130,7 @@ exports.printEventLog = function(instanceEvent){
     });
   }
 
-var checkWeb3Instance = function (){
+var checkWeb3Instance = function () {
   if(web3 == undefined){
     console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
     return false;
@@ -103,44 +138,7 @@ var checkWeb3Instance = function (){
   else {
     console.log('Everything ok');
     return true;
-  }
-}
-
-var JsethContract = function(abi, address, contract, instance){
-  var contractFunctionEncode = function(_functionName,_params) {
-      var nameMethod = '[encodeFunctionCall]';
-      log.debug(`${nameModule} ${nameMethod} Encoding call function ${JSON.stringify(_functionName)} ->  with params -> ${JSON.stringify(functionParams)}`);
-      var solidityFunction = new SolidityFunction('', _.find(abi, {name: _functionName}), address);
-      return solidityFunction.toPayload(functionParams).data;
-    };
   };
-  var listFunctions = function(){
-    let index = 0;
-    var list={};
-    abi.forEach((foo)=>{
-      list[foo.name] = index;
-      index++;
-    });
-    return list;
-  };
-  this.abi = abi;
-  this.address = address;
-  this.instance = instance;
-  this.contract = contract;
-  this.listFunctions = listFunctions();
-  this.contractFunctionEncode = contractFunctionEncode;
-}
-
-var JsetAccount = function(address){
-  this.address = address;
-  var unlock = function(password = ''){
-    web3.personal.unlockAccount(address, password, 1000);
-  }
-  this.unlock = unlock;
-  this.private;
-  this.public;
-  let _balance = web3.eth.getBalance(address);
-  this.balance = _balance.toNumber();
 }
 
 exports.jsethContractFromTruffle = function(_truffleBuild, callback){
@@ -168,11 +166,20 @@ exports.jsethContractFromTruffle = function(_truffleBuild, callback){
 }
 
 exports.jsethAccountGenerate = function(){
-
+  address = '0x' + account.getAddress().toString('hex');
+  var _account = wallet.generate();
+  var account = new JsethAccount(address);
+  account.private = _account._privKey;
+  account.public = _account._pubKey;
+  return account;
 }
 
-exports.jsethAccountGet = function(){
-
+exports.jsethAccountGet = function(address){
+  var account = new JsethAccount;
+  account.address = address;
+  account.private = 'on node account';
+  account.public = 'on node account';
+  return account;
 }
 
 exports.encodePayload = function(abiFoo, args, callback){
@@ -199,4 +206,23 @@ exports.encodePayload = function(abiFoo, args, callback){
     }
     callback(null, encodedPayload);
   }
+}
+
+exports.signTransaction = function(nonce, gasPrice, gasLimit, to, value, data, chainId, privateKey) {
+  var nameMethod = '[signTransaction]';
+  log.debug(`${nameModule} ${nameMethod} Signning transaction`);
+  var tx = new EthereumTx(null, chainId);
+  tx.nonce = web3.toHex(nonce);
+  tx.gasPrice = web3.toHex(gasPrice);
+  tx.gasLimit = web3.toHex(gasLimit);
+  tx.value = web3.toHex(value);
+  // for creating new contract, parameter to is Nil
+  if (to != null){
+    tx.to = to;
+  }
+  tx.data = data;
+  var privateKeyBuffer = new Buffer(privateKey, 'hex');
+  tx.sign(privateKeyBuffer);
+  log.debug(`${nameModule} ${nameMethod} Signned transaction`);
+  return '0x' + tx.serialize().toString('hex');
 }
