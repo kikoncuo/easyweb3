@@ -1,5 +1,4 @@
 const EthereumTx = require('ethereumjs-tx');
-const crypto = require('crypto-js');
 var SolidityFunction = require('web3/lib/web3/function');
 var wallet = require('ethereumjs-wallet');
 var fs = require('fs');
@@ -40,8 +39,6 @@ var JsethAccount = function(address){
   this.public = '';
 }
 
-exports.version = 'version 0.2';
-
 var checkWeb3Instance = function () {
   if(web3 == undefined){
     console.log('EASYWEB3 WARNING: Web3 instance is undefined, please specify it with the correct function or add it as a parameter in this one');
@@ -52,6 +49,8 @@ var checkWeb3Instance = function () {
     return true;
   };
 }
+
+exports.version = 'version 0.2';
 
 exports.setProvider = function (host = "http://localhost:8545"){
   web3 = new Web3(new Web3.providers.HttpProvider(host));
