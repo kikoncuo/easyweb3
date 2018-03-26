@@ -1,4 +1,5 @@
 const EthereumTx = require('ethereumjs-tx');
+const utils = require('./lib/utils.js');
 var SolidityFunction = require('web3/lib/web3/function');
 var wallet = require('ethereumjs-wallet');
 var fs = require('fs');
@@ -74,7 +75,7 @@ exports.getAddress = function(contrato){
     if (address == undefined || /0x([a-z0-9]{40,})$/.test(address)){
       console.log('ERROR: contract address not found');
     } else {
-      address = truffleBuild.networks[web3.version.network].address;
+      address = contrato.networks[web3.version.network].address;
     }
 }
 
@@ -215,6 +216,25 @@ exports.signTransaction = function(nonce, gasPrice, gasLimit, to, value, data, c
   tx.gasPrice = web3.toHex(gasPrice);
   tx.gasLimit = web3.toHex(gasLimit);
   tx.value = web3.toHex(value);
+  // for creating new contract, parameter to is Nil
+  if (to != null){
+    tx.to = to;
+  }
+  tx.data = data;
+  var privateKeyBuffer = new Buffer(privateKey, 'hex');
+  tx.sign(privateKeyBuffer);
+  log.debug(`${nameModule} ${nameMethod} Signned transaction`);
+  return '0x' + tx.serialize().toString('hex');
+}
+
+exports.signOffTransaction = function(nonce, gasPrice, gasLimit, to, value, data, chainId, privateKey) {
+  var nameMethod = '[signTransaction]';
+  log.debug(`${nameModule} ${nameMethod} Signning transaction`);
+  var tx = new EthereumTx(null, chainId);
+  tx.nonce = utils.toHex(nonce);
+  tx.gasPrice = utils.toHex(gasPrice);
+  tx.gasLimit = utils.toHex(gasLimit);
+  tx.value = utils.toHex(value);
   // for creating new contract, parameter to is Nil
   if (to != null){
     tx.to = to;
