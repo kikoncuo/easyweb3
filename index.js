@@ -210,7 +210,7 @@ exports.encodePayload = function(abiFoo, args, callback){
 
 exports.signTransaction = function(nonce, gasPrice, gasLimit, to, value, data, chainId, privateKey) {
   var nameMethod = '[signTransaction]';
-  log.debug(`${nameModule} ${nameMethod} Signning transaction`);
+  //log.debug(`${nameModule} ${nameMethod} Signning transaction`);
   var tx = new EthereumTx(null, chainId);
   tx.nonce = web3.toHex(nonce);
   tx.gasPrice = web3.toHex(gasPrice);
@@ -221,9 +221,12 @@ exports.signTransaction = function(nonce, gasPrice, gasLimit, to, value, data, c
     tx.to = to;
   }
   tx.data = data;
-  var privateKeyBuffer = new Buffer(privateKey, 'hex');
+  if(typeof(privateKey)=='string'){
+    var privateKeyBuffer = new Buffer(privateKey, 'hex');
+  }
+  privateKeyBuffer = privateKey;
   tx.sign(privateKeyBuffer);
-  log.debug(`${nameModule} ${nameMethod} Signned transaction`);
+  //log.debug(`${nameModule} ${nameMethod} Signned transaction`);
   return '0x' + tx.serialize().toString('hex');
 }
 
